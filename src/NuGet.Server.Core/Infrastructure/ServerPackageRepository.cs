@@ -21,6 +21,9 @@ namespace NuGet.Server.Core.Infrastructure
     public class ServerPackageRepository
         : IServerPackageRepository, IDisposable
     {
+        public event EventHandler<PackageEventArgs> PackageAdded;
+        public event EventHandler<PackageEventArgs> PackageRemoved;
+
         private readonly SemaphoreSlim _syncLock = new SemaphoreSlim(1);
 
         private readonly IFileSystem _fileSystem;
@@ -521,6 +524,37 @@ namespace NuGet.Server.Core.Infrastructure
                 _serverPackageCache.Persist();
                 _needsRebuild = true;
                 _logger.Log(LogLevel.Info, "Cleared package cache.");
+            }
+        }
+
+        public async Task AddPackageMetadataAsync(IPackage package, CancellationToken token)
+        {
+            using (await LockAndSuppressFileSystemWatcherAsync(token))
+            {
+                _logger.Log(LogLevel.Info, "Start adding package {0} {1} to store.", package.Id, package.Version);
+                    
+                // Add to metadata store
+                _serverPackageStore.Add(package, EnableDelisting);
+
+                _logger.Log(LogLevel.Info, "Finished adding package {0} {1} to store.", package.Id, package.Version);
+            }
+        }
+
+        public async Task RemovePackageMetadataAsync(string packageId, SemanticVersion version, CancellationToken token)
+        {
+            var package = await this.FindPackageAsync(packageId, version, token);
+
+            if (package != null)
+            {
+                using (await LockAndSuppressFileSystemWatcherAsync(token))
+                {
+                    _logger.Log(LogLevel.Info, "Start removing package {0} {1} from store.", package.Id, package.Version);
+
+                    // Update metadata store
+                    _serverPackageStore.Remove(package.Id, package.Version, EnableDelisting);
+
+                    _logger.Log(LogLevel.Info, "Finished removing package {0} {1} from store.", package.Id, package.Version);
+                }
             }
         }
 

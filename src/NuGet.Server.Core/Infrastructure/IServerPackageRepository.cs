@@ -33,5 +33,9 @@ namespace NuGet.Server.Core.Infrastructure
         Task ClearCacheAsync(CancellationToken token);
 
         Task RemovePackageAsync(string packageId, SemanticVersion version, CancellationToken token);
+
+        Task AddPackageMetadataAsync(IPackage package, CancellationToken token);
+
+        Task RemovePackageMetadataAsync(string packageId, SemanticVersion version, CancellationToken token);
     }
 }
