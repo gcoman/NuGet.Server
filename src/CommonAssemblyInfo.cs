@@ -14,3 +14,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 [assembly: NeutralResourcesLanguage("en-US")]
+
+[assembly: AssemblyVersion("3.1.2")]
+[assembly: AssemblyFileVersion("3.1.2")]
+[assembly: AssemblyInformationalVersion("3.1.2-UiPath.1")]
