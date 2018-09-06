@@ -72,7 +72,8 @@
     <Compile Include="Infrastructure\ClientCompatibility.cs" />
     <Compile Include="Infrastructure\ClientCompatibilityFactory.cs" />
     <Compile Include="Infrastructure\DefaultSettingsProvider.cs" />
-    <Compile Include="Infrastructure\PackageEventArgs.cs" />
+    <Compile Include="Infrastructure\PackageRemovedEventArgs.cs" />
+    <Compile Include="Infrastructure\PackageAddedEventArgs.cs" />
     <Compile Include="Infrastructure\SerializedServerPackages.cs" />
     <Compile Include="Infrastructure\ServerPackageStore.cs" />
     <Compile Include="Infrastructure\IServerPackageStore.cs" />

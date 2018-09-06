@@ -21,8 +21,8 @@ namespace NuGet.Server.Core.Infrastructure
     public class ServerPackageRepository
         : IServerPackageRepository, IDisposable
     {
-        public event EventHandler<PackageEventArgs> PackageAdded;
-        public event EventHandler<PackageEventArgs> PackageRemoved;
+        public event EventHandler<PackageAddedEventArgs> PackageAdded;
+        public event EventHandler<PackageRemovedEventArgs> PackageRemoved;
 
         private readonly SemaphoreSlim _syncLock = new SemaphoreSlim(1);
 
@@ -345,6 +345,8 @@ namespace NuGet.Server.Core.Infrastructure
                 _serverPackageCache.Add(serverPackage, EnableDelisting);
 
                 _logger.Log(LogLevel.Info, "Finished adding package {0} {1}.", package.Id, package.Version);
+
+                PackageAdded?.Invoke(this, new PackageAddedEventArgs { Package = serverPackage });
             }
         }
 
@@ -412,8 +414,9 @@ namespace NuGet.Server.Core.Infrastructure
                 }
                 else
                 {
-
                     _logger.Log(LogLevel.Info, "Finished removing package {0} {1}.", package.Id, package.Version);
+
+                    PackageRemoved?.Invoke(this, new PackageRemovedEventArgs { Id = package.Id, Version = package.Version });
                 }
             }
         }
@@ -527,14 +530,14 @@ namespace NuGet.Server.Core.Infrastructure
             }
         }
 
-        public async Task AddPackageMetadataAsync(IPackage package, CancellationToken token)
+        public async Task AddPackageMetadataAsync(ServerPackage package, CancellationToken token)
         {
             using (await LockAndSuppressFileSystemWatcherAsync(token))
             {
                 _logger.Log(LogLevel.Info, "Start adding package {0} {1} to store.", package.Id, package.Version);
-                    
+
                 // Add to metadata store
-                _serverPackageStore.Add(package, EnableDelisting);
+                _serverPackageCache.Add(package, EnableDelisting);
 
                 _logger.Log(LogLevel.Info, "Finished adding package {0} {1} to store.", package.Id, package.Version);
             }
@@ -551,7 +554,7 @@ namespace NuGet.Server.Core.Infrastructure
                     _logger.Log(LogLevel.Info, "Start removing package {0} {1} from store.", package.Id, package.Version);
 
                     // Update metadata store
-                    _serverPackageStore.Remove(package.Id, package.Version, EnableDelisting);
+                    _serverPackageCache.Remove(package.Id, package.Version, EnableDelisting);
 
                     _logger.Log(LogLevel.Info, "Finished removing package {0} {1} from store.", package.Id, package.Version);
                 }
